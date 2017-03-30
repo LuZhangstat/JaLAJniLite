@@ -35,9 +35,11 @@ $(PACKAGE): $(JAVA_SRC)
 	$(JC) $(JFLAGS) $(JAVA_HOME)/packages $(JAVA_SRC)
 
 $(HEADER_LAPACK): 
+	@mkdir -p $(@D)
 	$(JH) -o $(HEADER_LAPACK) -classpath $(JAVA_HOME)/packages JaLAJniLite.jni_lapack.jniLAPACK 
 
 $(HEADER_BLAS):
+	@mkdir -p $(@D)
 	$(JH) -o $(HEADER_BLAS) -classpath $(JAVA_HOME)/packages JaLAJniLite.jni_blas.jniCBLAS
 
 $(DYLIB_LAPACK): $(C_SRC_LAPACK)
@@ -49,9 +51,10 @@ $(DYLIB_BLAS): $(C_SRC_BLAS)
 	$(CC) $(CFLAGS) -shared -fPIC $(C_SRC_BLAS) -lblas -o $(DYLIB_BLAS)
 
 clean: 
-	rm -fr $(JAVA_HOME)/packages
+	rm -fr $(JAVA_HOME)/packages/JaLAJniLite
 	rm -f $(JNI_LAPACK_SRC)/c/include/jniLAPACK.h
-	rm -f $(JAVA_HOME)/projects/JaLAJniLite_tests/*.class
-	rm -fr $(JAVA_HOME)/lib
+	rm -fr $(JAVA_HOME)/lib/libblas_lite.dylib
+	rm -fr $(JAVA_HOME)/lib/liblapack_lite.dylib
 	rm -f $(JNI_BLAS_SRC)/c/include/jniCBLAS.h
-	rm -f $(JAVA_HOME)/projects/JaLAJniLite_tests/*.txt
+	rm -f $(JAVA_HOME)/test/JaLAJniLite_tests/*.class
+	rm -f $(JAVA_HOME)/test/JaLAJniLite_tests/*.txt
