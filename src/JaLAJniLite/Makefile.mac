@@ -1,0 +1,65 @@
+DEST = .
+CC = gcc
+CFLAGS = $(INCLUDE) $(LIB) 
+
+JAVA_HOME = ../..
+
+
+JNI_LAPACK_SRC = $(JAVA_HOME)/src/JaLAJniLite/jni_lapack
+JNI_BLAS_SRC = $(JAVA_HOME)/src/JaLAJniLite/jni_blas
+
+INCLUDE = -I$(JNI_BLAS_SRC)/c/include \
+	-I$(JAVA_HOME)/include \
+	-I$(JNI_LAPACK_SRC)/c/include
+LIB = -L$(JAVA_HOME)/lib #-L/usr/local/lib
+# The ACCELE_FRAME_LIB_DIR store the path of the built-in blas and lapack on mac os system 
+ACCELE_FRAME_LIB_DIR = /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/
+C_SRC_LAPACK = $(JNI_LAPACK_SRC)/c/jniLAPACK.c
+C_SRC_BLAS = $(JNI_BLAS_SRC)/c/jniCBLAS.c
+DYLIB_LAPACK = $(JAVA_HOME)/lib/liblapack_lite.dylib
+DYLIB_BLAS = $(JAVA_HOME)/lib/libblas_lite.dylib
+LINK_BLAS = $(JAVA_HOME)/lib/libBLAS.dylib
+LINK_LAPACK = $(JAVA_HOME)/lib/libLAPACK.dylib
+	
+
+# For package JaLAJniLite
+JC = javac
+JH = javah
+JFLAGS = -d
+JAVA_SRC = $(JNI_LAPACK_SRC)/java/jniLAPACK.java $(JNI_BLAS_SRC)/java/jniCBLAS.java
+PACKAGE = $(JAVA_HOME)/class/JaLAJniLite
+HEADER_LAPACK = $(JNI_LAPACK_SRC)/c/include/jniLAPACK.h
+HEADER_BLAS = $(JNI_BLAS_SRC)/c/include/jniCBLAS.h
+
+
+all: $(PACKAGE) $(LINK_BLAS) $(LINK_LAPACK) $(DYLIB_LAPACK) $(DYLIB_BLAS) 
+
+$(PACKAGE): $(JAVA_SRC)
+	@mkdir -p $(@D)
+	$(JC) $(JFLAGS) $(JAVA_HOME)/class $(JAVA_SRC)
+
+$(LINK_BLAS):
+	@mkdir -p $(@D)
+	ln -s $(ACCELE_FRAME_LIB_DIR)/libBLAS.dylib $(LINK_BLAS)
+
+$(LINK_LAPACK):
+	@mkdir -p $(@D)
+	ln -s $(ACCELE_FRAME_LIB_DIR)/libLAPACK.dylib $(LINK_LAPACK)
+
+
+$(DYLIB_LAPACK): $(C_SRC_LAPACK)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -shared -fPIC $(C_SRC_LAPACK) -llapack -o $(DYLIB_LAPACK)
+
+$(DYLIB_BLAS): $(C_SRC_BLAS) 
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -shared -fPIC $(C_SRC_BLAS) -lblas -o $(DYLIB_BLAS)
+
+clean: 
+	rm -fr $(JAVA_HOME)/class/JaLAJniLite
+	rm -f $(JAVA_HOME)/lib/libblas_lite.dylib
+	rm -f $(JAVA_HOME)/lib/liblapack_lite.dylib
+	rm -f $(LINK_BLAS)
+	rm -f $(LINK_LAPACK)
+	rm -f $(JAVA_HOME)/test/JaLAJniLite_tests/*.class
+	rm -f $(JAVA_HOME)/test/JaLAJniLite_tests/*.txt

@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <assert.h>
-#include <jniLAPACK.h>
+/*#include <jniLAPACK.h>*/
 #include <stdlib.h>
 
 /* two functions that deal with matrix layout */
